@@ -2,8 +2,9 @@
 #include "GLFW/glfw3.h"
 #include <iostream>
 #include <stdexcept>
-
-
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
 void processInput(GLFWwindow *window);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
@@ -31,6 +32,15 @@ int main(int argc, char* argv[]) {
 
     glViewport(0, 0, 800, 600);
 
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+
+    // setup platform/renderer bindings
+    if (!ImGui_ImplGlfw_InitForOpenGL(window, true)) { return false; }
+    if (!ImGui_ImplOpenGL3_Init()) { return false; }
+
     while(!glfwWindowShouldClose(window)) {
 
         processInput(window);
@@ -47,8 +57,12 @@ int main(int argc, char* argv[]) {
         glBegin(GL_POINTS);
         glVertex3f(0.0f, 0.0f, 0.0f);
         glEnd();
-
-
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+        ImGui::ShowDemoWindow();
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
