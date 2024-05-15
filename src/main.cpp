@@ -7,6 +7,7 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 #include <vector>
+#include <functional>
 
 void processInput(GLFWwindow *window);
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
@@ -17,7 +18,8 @@ public:
     virtual void Init() = 0;
     virtual void Render(double dt) = 0;
 
-    bool& IsInit() {return isInit;}
+    bool &IsInit() { return isInit; }
+
 private:
     bool isInit = false;
 };
@@ -49,7 +51,7 @@ public:
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
-        for (auto& widget : m_Widgets)
+        for (auto &widget : m_Widgets)
         {
             if (!widget->IsInit())
             {
@@ -62,6 +64,11 @@ public:
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     }
 
+    void AddWidget(Widget *w)
+    {
+        m_Widgets.push_back(w);
+    }
+
     ~UiMgr()
     {
         m_Widgets.clear();
@@ -71,12 +78,16 @@ public:
     }
 
 private:
-    std::vector<Widget*> m_Widgets;
+    std::vector<Widget *> m_Widgets;
 };
 
 class GLFWApp
 {
 public:
+    GLFWApp()
+    {
+        ui_mgr = new UiMgr();
+    }
     void Init(int width, int height, const char *name)
     {
         if (!glfwInit())
@@ -100,10 +111,9 @@ public:
         }
 
         glViewport(0, 0, 800, 600);
-        ui_mgr = new UiMgr();
         ui()->Init(window);
     }
-    
+
     void Update()
     {
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -124,7 +134,10 @@ public:
         glBegin(GL_POINTS);
         glVertex3f(0.0f, 0.0f, 0.0f);
         glEnd();
-
+        for (auto &wiglet : m_wiglets)
+        {
+            wiglet(this);
+        }
         ui()->Update();
 
         glfwSwapBuffers(window);
@@ -142,6 +155,11 @@ public:
         return ui_mgr;
     }
 
+    GLFWwindow *w()
+    {
+        return window;
+    }
+
     void Run()
     {
         Init(800, 640, "Example");
@@ -153,15 +171,34 @@ public:
         Shutdown();
     }
 
+    void AddWiglet(std::function<void(GLFWApp *)> wiglet)
+    {
+        m_wiglets.push_back(wiglet);
+    }
+
 private:
     glm::ivec2 dimensions;
     GLFWwindow *window = nullptr;
     UiMgr *ui_mgr;
+    std::vector<std::function<void(GLFWApp *)>> m_wiglets;
+};
+
+class FunnyWidget : public Widget
+{
+    void Init() override
+    {
+    }
+
+    void Render(double dt) override
+    {
+        ImGui::ShowDemoWindow();
+    }
 };
 
 int main(int argc, char *argv[])
 {
     GLFWApp app;
+    app.ui()->AddWidget(new FunnyWidget());
     app.Run();
     return 0;
 }
