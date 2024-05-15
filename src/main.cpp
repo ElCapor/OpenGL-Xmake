@@ -124,16 +124,6 @@ public:
     {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
-
-        glEnable(GL_POINT_SMOOTH);
-        glEnable(GL_BLEND);
-
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-        glPointSize(64.0f);
-        glBegin(GL_POINTS);
-        glVertex3f(0.0f, 0.0f, 0.0f);
-        glEnd();
         for (auto &wiglet : m_wiglets)
         {
             wiglet(this);
@@ -195,10 +185,24 @@ class FunnyWidget : public Widget
     }
 };
 
+void funny_wiglet(GLFWApp *app)
+{
+    glEnable(GL_POINT_SMOOTH);
+    glEnable(GL_BLEND);
+
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    glPointSize(64.0f);
+    glBegin(GL_POINTS);
+    glVertex3f(0.0f, 0.0f, 0.0f);
+    glEnd();
+}
+
 int main(int argc, char *argv[])
 {
     GLFWApp app;
     app.ui()->AddWidget(new FunnyWidget());
+    app.AddWiglet(funny_wiglet);
     app.Run();
     return 0;
 }
