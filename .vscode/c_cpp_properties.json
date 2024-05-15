@@ -1,0 +1,12 @@
+{
+    "configurations": [
+        {
+            "name": "Windows",
+            "compileCommands": ".vscode/c_cpp_properties.json",
+            "intelliSenseMode": "windows-msvc-x64",
+            "cStandard": "c17",
+            "cppStandard": "c++23"
+        }
+    ],
+    "version": 4
+}
