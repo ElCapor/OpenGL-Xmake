@@ -83,6 +83,30 @@ private:
     std::vector<Widget *> m_Widgets;
 };
 
+class Wiglet{
+public:
+    virtual void wig() = 0;
+    bool isInit = false;
+};
+
+class TriangleWiglet : public Wiglet{
+    void wig() override
+    {
+        if (!isInit)
+        {
+            // set up vertex data (and buffer(s)) and configure vertex attributes
+            // ------------------------------------------------------------------
+            float vertices[] = {
+                -0.5f, -0.5f, 0.0f, // left  
+                0.5f, -0.5f, 0.0f, // right 
+                0.0f,  0.5f, 0.0f  // top   
+            }; 
+        }
+        
+
+    }
+};
+
 class GLFWApp
 {
 public:
@@ -111,7 +135,7 @@ public:
             std::cerr << "Failed to initialized to glad" << std::endl;
             return;
         }
-
+        
         glViewport(0, 0, 800, 600);
         ui()->Init(window);
     }
