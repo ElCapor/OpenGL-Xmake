@@ -8,10 +8,12 @@
 #include "imgui_impl_opengl3.h"
 #include <vector>
 #include <functional>
-
+#include "Shaders.hpp"
+#include "utils/ResourceManager.hpp"
 void processInput(GLFWwindow *window);
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 
+ResourceManager* rsrc = new ResourceManager();
 class Widget
 {
 public:
@@ -182,6 +184,10 @@ class FunnyWidget : public Widget
     void Render(double dt) override
     {
         ImGui::ShowDemoWindow();
+        if (ImGui::Button("Load Shaders"))
+        {
+            Shader sh(fsutils::loadFile(rsrc->ShadersPath().concat("\\vertex.vs").string()).c_str(), fsutils::loadFile(rsrc->ShadersPath().concat("\\frag.fs").string()).c_str());
+        }
     }
 };
 

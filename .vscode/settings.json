@@ -65,6 +65,12 @@
         "xmemory": "cpp",
         "xstring": "cpp",
         "xtr1common": "cpp",
-        "xutility": "cpp"
+        "xutility": "cpp",
+        "_70_exception": "cpp",
+        "_70_new": "cpp",
+        "_70_xstddef": "cpp",
+        "xstddef": "cpp",
+        "codecvt": "cpp",
+        "cstdarg": "cpp"
     }
 }
