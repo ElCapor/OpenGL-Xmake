@@ -83,29 +83,15 @@ private:
     std::vector<Widget *> m_Widgets;
 };
 
+class GLFWApp;
+
 class Wiglet{
 public:
-    virtual void wig() = 0;
-    bool isInit = false;
+    bool isInit;
+    virtual void render(GLFWApp* app) = 0;
 };
 
-class TriangleWiglet : public Wiglet{
-    void wig() override
-    {
-        if (!isInit)
-        {
-            // set up vertex data (and buffer(s)) and configure vertex attributes
-            // ------------------------------------------------------------------
-            float vertices[] = {
-                -0.5f, -0.5f, 0.0f, // left  
-                0.5f, -0.5f, 0.0f, // right 
-                0.0f,  0.5f, 0.0f  // top   
-            }; 
-        }
-        
 
-    }
-};
 
 class GLFWApp
 {
@@ -150,9 +136,9 @@ public:
     {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
-        for (auto &wiglet : m_wiglets)
+        for (auto &wiglet : m_Wiglets)
         {
-            wiglet(this);
+            wiglet->render(this);
         }
         ui()->Update();
 
@@ -187,16 +173,16 @@ public:
         Shutdown();
     }
 
-    void AddWiglet(std::function<void(GLFWApp *)> wiglet)
+    void AddWiglet(Wiglet* wiglet)
     {
-        m_wiglets.push_back(wiglet);
+        m_Wiglets.push_back(wiglet);
     }
 
 private:
     glm::ivec2 dimensions;
     GLFWwindow *window = nullptr;
     UiMgr *ui_mgr;
-    std::vector<std::function<void(GLFWApp *)>> m_wiglets;
+    std::vector<Wiglet*> m_Wiglets;
 };
 
 class FunnyWidget : public Widget
@@ -215,24 +201,69 @@ class FunnyWidget : public Widget
     }
 };
 
-void funny_wiglet(GLFWApp *app)
-{
-    glEnable(GL_POINT_SMOOTH);
-    glEnable(GL_BLEND);
+class TriangleWiglet : public Wiglet{
+public:
 
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    TriangleWiglet() {};
+    float* vertices;
+    unsigned int VBO, VAO;
+    Shader shader;
+    void render(GLFWApp* app)
+    {
+        if (!isInit)
+        {
+            // set up vertex data (and buffer(s)) and configure vertex attributes
+            // ------------------------------------------------------------------
+            float vx[] = {
+                // positions         // colors
+                0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,  // bottom right
+                -0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,  // bottom left
+                0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f   // top 
+            };
+            vertices = vx;
 
-    glPointSize(64.0f);
-    glBegin(GL_POINTS);
-    glVertex3f(0.0f, 0.0f, 0.0f);
-    glEnd();
-}
+            glGenVertexArrays(1, &VAO);
+            glGenBuffers(1, &VBO);
+            // bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
+            glBindVertexArray(VAO);
 
+            glBindBuffer(GL_ARRAY_BUFFER, VBO);
+            glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+            // position attribute
+            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+            glEnableVertexAttribArray(0);
+            // color attribute
+            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+            glEnableVertexAttribArray(1);
+
+            shader = Shader(fsutils::loadFile((rsrc->ShadersPath().concat("\\vertex.vs")).string()).c_str(), fsutils::loadFile((rsrc->ShadersPath().concat("\\frag.fs")).string()).c_str());
+
+            isInit = true;
+        }
+
+        shader.use();
+        glBindVertexArray(VAO); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+        /*
+        glEnable(GL_POINT_SMOOTH);
+        glEnable(GL_BLEND);
+
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+        glPointSize(64.0f);
+        glBegin(GL_POINTS);
+        glVertex3f(0.0f, 0.0f, 0.0f);
+        glEnd();
+        */
+
+    }
+};
 int main(int argc, char *argv[])
 {
     GLFWApp app;
     app.ui()->AddWidget(new FunnyWidget());
-    app.AddWiglet(funny_wiglet);
+    app.AddWiglet(new TriangleWiglet());
     app.Run();
     return 0;
 }

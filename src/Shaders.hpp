@@ -10,6 +10,7 @@
 class Shader
 {
 public:
+    Shader() {}
     Shader(const char* vs_content, const char* fs_content)
     {
         // error handling
